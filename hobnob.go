@@ -12,11 +12,12 @@ var CLI struct {
 		Name string   `arg:"" name:"name" help:"Name or alias" type:"string"`
 		Note []string `arg:"" name:"note" help:"Note" type:"string"`
 	} `cmd:"" help:"Add note"`
-	From struct {
+	About struct {
 		Name string `arg:"" name:"name" help:"Name or alias" type:"string"`
-	} `cmd:"" help:"List all notes from person"`
+	} `cmd:"" help:"List all notes about person"`
 	Search struct {
-		SearchString []string `arg:"" name:"search string" help:"String to search for (case insensitive)" type:"string"`
+		SearchString []string `arg:"" name:"string" help:"String to search for (case insensitive)" type:"string"`
+		name         string   `short:"n" name:"name" help:"Only search person" type:"string" optional:"" placeholder:"Name|Alias"`
 	} `cmd:"" help:"Search notes"`
 	Undo  struct{} `cmd:"" help:"Undo last action"`
 	Alias struct {
@@ -33,36 +34,38 @@ func main() {
 	data, err := internal.LoadAll("data.json")
 	result := ""
 	if err != nil {
-		panic(err)
+		ctx.Kong.Fatalf("Error loading data: %s", err)
 	}
 	switch ctx.Command() {
 	case "search <search>":
-		result = internal.CmdSearch(ctx, &data)
+		result = internal.CmdSearch(CLI.Search.SearchString, CLI.Search.name, &data)
 	case "add <name> <note>":
-		result = internal.CmdAdd(ctx, &data)
+		result = internal.CmdAdd(CLI.Add.Name, CLI.Add.Note, &data)
 		err = internal.Save("data.json", data.Actions)
 	case "undo":
-		result = internal.CmdUndo(ctx, &data)
+		result = internal.CmdUndo(&data)
 		err = internal.Save("data.json", data.Actions)
 	case "history":
-		result = internal.CmdHistory(ctx, &data)
+		result = internal.CmdHistory(&data)
 	case "alias <name> <alias>":
-		result, err = internal.CmdAlias(ctx, &data)
+		result, err = internal.CmdAlias(CLI.Alias.Name, CLI.Alias.Alias, &data)
 		if err == nil {
 			err = internal.Save("data.json", data.Actions)
 		}
 	case "aliases":
-		result = internal.CmdAliases(ctx, &data)
+		result = internal.CmdAliases(&data)
 	case "contacts":
-		result = internal.CmdContacts(ctx, &data)
-	case "from <name>":
-		result = internal.CmdFrom(ctx, &data)
+		result = internal.CmdContacts(&data)
+	case "about <name>":
+		result = internal.CmdAbout(CLI.About.Name, &data)
+	case "search <string>":
+		result = internal.CmdSearch(CLI.Search.SearchString, CLI.Search.name, &data)
 	default:
 		fmt.Println("Unknown command")
 		log.Fatal(ctx.Command())
 	}
 	if err != nil {
-		panic(err)
+		ctx.Kong.Fatalf("Error: %s", err)
 	}
 	println(result)
 }

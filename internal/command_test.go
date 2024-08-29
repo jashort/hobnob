@@ -1,7 +1,6 @@
 package internal
 
 import (
-	"github.com/alecthomas/kong"
 	"strings"
 	"testing"
 )
@@ -15,33 +14,33 @@ func TestCommands(t *testing.T) {
 	}
 
 	// Add some aliases
-	res, _ := CmdAlias(&kong.Context{Args: []string{"alias", "Alice Smith", "alice"}}, &data)
+	res, _ := CmdAlias("Alice Smith", "alice", &data)
 	if res != "Added alias from name Alice Smith to alias alice" {
 		t.Error("Incorrect output from adding alias alice")
 	}
-	res, _ = CmdAlias(&kong.Context{Args: []string{"alias", "Bob Jones", "Bob"}}, &data)
+	res, _ = CmdAlias("Bob Jones", "Bob", &data)
 	if res != "Added alias from name Bob Jones to alias Bob" {
 		t.Error("Incorrect output from adding alias Bob")
 	}
 	// Adding the same alias twice should return an error
-	_, tmpErr := CmdAlias(&kong.Context{Args: []string{"alias", "Bob Jones", "Bob"}}, &data)
+	_, tmpErr := CmdAlias("Bob Jones", "Bob", &data)
 	if tmpErr == nil {
 		t.Error("Adding duplicate alias did not return error")
 	}
 
 	// Add some notes
-	res = CmdAdd(&kong.Context{Args: []string{"add", "Alice Smith", "Alice note 1"}}, &data)
+	res = CmdAdd("Alice Smith", []string{"Alice note 1"}, &data)
 	if !strings.Contains(res, "Alice Smith") {
 		t.Error("Expected 'Alice Smith', got ", res)
 	}
 
 	// Using an alias should store the person's full name
-	res = CmdAdd(&kong.Context{Args: []string{"add", "Alice", "Alice note 2"}}, &data)
+	res = CmdAdd("Alice", []string{"Alice note 2"}, &data)
 	if !strings.Contains(res, "Alice Smith") {
 		t.Error("Expected 'Alice Smith', got ", res)
 	}
 
-	res = CmdAdd(&kong.Context{Args: []string{"add", "bob", "Bob note 1"}}, &data)
+	res = CmdAdd("bob", []string{"Bob", "note 1"}, &data)
 	if !strings.Contains(res, "Bob note 1") {
 		t.Error("Expected 'Bob note 1', got ", res)
 	}
@@ -56,36 +55,36 @@ func TestCommands(t *testing.T) {
 	}
 
 	// Remove the last note
-	res = CmdUndo(&kong.Context{Args: []string{"undo"}}, &data)
+	res = CmdUndo(&data)
 	if len(data.Actions) != 4 {
 		t.Error("Expected 4 actions, got ", len(data.Actions))
 	}
 
-	res = CmdContacts(&kong.Context{Args: []string{"contacts"}}, &data)
+	res = CmdContacts(&data)
 	if !strings.Contains(res, "Alice Smith  (alice)\n") || !strings.Contains(res, "Bob Jones  (Bob)\n") {
 		t.Error("Incorrect output from contacts commands")
 	}
 
-	res = CmdHistory(&kong.Context{Args: []string{"history"}}, &data)
+	res = CmdHistory(&data)
 	if !strings.Contains(res, `{"name":"Alice Smith","alias":"alice"}`) ||
 		!strings.Contains(res, `{"name":"Bob Jones","alias":"Bob"}`) ||
 		!strings.Contains(res, `{"name":"Alice Smith","note":"Alice note 1","timestamp":`) {
 		t.Error("Incorrect output from history command")
 	}
 
-	res = CmdFrom(&kong.Context{Args: []string{"from", "alice"}}, &data)
+	res = CmdAbout("alice", &data)
 	if !strings.Contains(res, "Alice Smith") ||
 		!strings.Contains(res, "Alice note 1") ||
 		!strings.Contains(res, "Alice note 2") {
 		t.Error("Incorrect output from from command")
 	}
 
-	res = CmdSearch(&kong.Context{Args: []string{"search", "bob", "note", "1"}}, &data)
+	res = CmdSearch([]string{"bob", "note", "1"}, "bob", &data)
 	if !strings.Contains(res, "Bob note 1") {
 		t.Error("Incorrect output from search command, got", res)
 	}
 
-	res = CmdAliases(&kong.Context{Args: []string{"aliases"}}, &data)
+	res = CmdAliases(&data)
 	if !strings.Contains(res, "Aliases:") ||
 		!strings.Contains(res, "Alias alice -> Name Alice Smith") ||
 		!strings.Contains(res, "Alias Bob -> Name Bob Jones") {

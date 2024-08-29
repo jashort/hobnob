@@ -3,17 +3,16 @@ package internal
 import (
 	"cmp"
 	"fmt"
-	"github.com/alecthomas/kong"
 	"maps"
 	"slices"
 	"strings"
 	"time"
 )
 
-func CmdAdd(ctx *kong.Context, data *Data) string {
+func CmdAdd(name string, note []string, data *Data) string {
 	record := Note{
-		Name:      data.LookupName(ctx.Args[1]),
-		Note:      strings.Join(ctx.Args[2:], " "),
+		Name:      data.LookupName(name),
+		Note:      strings.Join(note, " "),
 		Timestamp: time.Now().Local(),
 	}
 
@@ -21,21 +20,24 @@ func CmdAdd(ctx *kong.Context, data *Data) string {
 	return record.String()
 }
 
-func CmdSearch(ctx *kong.Context, data *Data) string {
-	searchString := strings.ToLower(strings.Join(ctx.Args[1:], " "))
+func CmdSearch(search []string, person string, data *Data) string {
+	searchString := strings.ToLower(strings.Join(search, " "))
 	output := strings.Builder{}
+	if person != "" {
+		person = data.LookupName(person)
+	}
 	for _, note := range data.Notes {
-		if strings.Contains(strings.ToLower(note.Note), searchString) {
-			output.WriteString(fmt.Sprintf("%s\n\n", note))
+		if person == "" || strings.ToLower(person) == strings.ToLower(note.Name) {
+			if strings.Contains(strings.ToLower(note.Note), searchString) {
+				output.WriteString(fmt.Sprintf("%s\n\n", note))
+			}
 		}
 	}
 	return output.String()
 }
 
-func CmdFrom(ctx *kong.Context, data *Data) string {
-	searchString := strings.ToLower(strings.Join(ctx.Args[1:], " "))
-
-	name := strings.ToLower(data.LookupName(searchString))
+func CmdAbout(name string, data *Data) string {
+	name = strings.ToLower(data.LookupName(name))
 	output := strings.Builder{}
 	for _, note := range data.Notes {
 		if strings.ToLower(note.Name) == name {
@@ -45,16 +47,16 @@ func CmdFrom(ctx *kong.Context, data *Data) string {
 	return output.String()
 }
 
-func CmdAlias(ctx *kong.Context, data *Data) (string, error) {
+func CmdAlias(name string, alias string, data *Data) (string, error) {
 	record := Alias{
-		Name:  ctx.Args[1],
-		Alias: strings.Join(ctx.Args[2:], " "),
+		Name:  name,
+		Alias: alias,
 	}
 	err := AddAlias(data, record)
 	return fmt.Sprintf("Added alias from name %s to alias %s", record.Name, record.Alias), err
 }
 
-func CmdAliases(ctx *kong.Context, data *Data) string {
+func CmdAliases(data *Data) string {
 	aliasCmp := func(a, b Alias) int {
 		return cmp.Compare(strings.ToLower(a.Alias), strings.ToLower(b.Alias))
 	}
@@ -67,7 +69,7 @@ func CmdAliases(ctx *kong.Context, data *Data) string {
 	return output.String()
 }
 
-func CmdContacts(ctx *kong.Context, data *Data) string {
+func CmdContacts(data *Data) string {
 	people := make(map[string]*Person)
 	output := strings.Builder{}
 	for _, alias := range data.Aliases {
@@ -98,7 +100,7 @@ func CmdContacts(ctx *kong.Context, data *Data) string {
 // CmdUndo Because this is a CLI utility, "undo" removes the last thing from the list of
 // actions, but does not worry about cleaning up the rest of the data structure because
 // the data file will be reloaded next time the command is run.
-func CmdUndo(ctx *kong.Context, data *Data) string {
+func CmdUndo(data *Data) string {
 	if len(data.Actions) > 0 {
 		data.Actions = data.Actions[:len(data.Actions)-1]
 		return fmt.Sprintf("Removed 1 record, %d remaining\n", len(data.Actions))
@@ -107,7 +109,7 @@ func CmdUndo(ctx *kong.Context, data *Data) string {
 	}
 }
 
-func CmdHistory(ctx *kong.Context, data *Data) string {
+func CmdHistory(data *Data) string {
 	output := strings.Builder{}
 	for _, action := range data.Actions {
 		output.WriteString(fmt.Sprintf("%s %s\n  %s\n", action.Timestamp, action.Action, action.Data))
