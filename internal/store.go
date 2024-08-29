@@ -9,9 +9,17 @@ import (
 	"time"
 )
 
+type Type string
+
+const (
+	NOTE  Type = "NOTE"
+	ALIAS      = "ALIAS"
+)
+
 type Action struct {
 	Timestamp time.Time `json:"timestamp"`
-	Action    string    `json:"action"`
+	Type      Type      `json:"type"`
+	Name      string    `json:"name"`
 	Data      string    `json:"data"`
 }
 
@@ -39,23 +47,23 @@ func AddAlias(data *Data, alias Alias) error {
 		}
 	}
 	data.Aliases = append(data.Aliases, alias)
-	jsonRecord, _ := json.Marshal(alias)
 	data.Actions = append(
 		data.Actions, Action{
+			Type:      ALIAS,
 			Timestamp: time.Now(),
-			Action:    "addAlias",
-			Data:      string(jsonRecord),
+			Name:      alias.Name,
+			Data:      alias.Alias,
 		})
 	return nil
 }
 
 func AddNote(data *Data, note Note) {
 	data.Notes = append(data.Notes, note)
-	jsonRecord, _ := json.Marshal(note)
 	data.Actions = append(data.Actions, Action{
+		Type:      NOTE,
+		Name:      note.Name,
 		Timestamp: time.Now(),
-		Action:    "addNote",
-		Data:      string(jsonRecord),
+		Data:      note.Note,
 	})
 }
 
@@ -104,18 +112,17 @@ func LoadAll(filename string) (Data, error) {
 	}
 
 	for _, action := range rawData.Actions {
-		if action.Action == "addAlias" {
-			var dat Alias
-			if err := json.Unmarshal([]byte(action.Data), &dat); err != nil {
-				panic(err)
-			}
-			data.Aliases = append(data.Aliases, dat)
-		} else if action.Action == "addNote" {
-			var dat Note
-			if err := json.Unmarshal([]byte(action.Data), &dat); err != nil {
-				panic(err)
-			}
-			data.Notes = append(data.Notes, dat)
+		if action.Type == ALIAS {
+			data.Aliases = append(data.Aliases, Alias{
+				Name:  action.Name,
+				Alias: action.Data,
+			})
+		} else if action.Type == NOTE {
+			data.Notes = append(data.Notes, Note{
+				Name:      action.Name,
+				Note:      action.Data,
+				Timestamp: action.Timestamp,
+			})
 		}
 	}
 

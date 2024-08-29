@@ -112,7 +112,7 @@ func CmdUndo(data *Data) string {
 func CmdHistory(data *Data) string {
 	output := strings.Builder{}
 	for _, action := range data.Actions {
-		output.WriteString(fmt.Sprintf("%s %s\n  %s\n", action.Timestamp, action.Action, action.Data))
+		output.WriteString(fmt.Sprintf("%s %s\n  %s\n", action.Timestamp, action.Type, action.Data))
 	}
 	return output.String()
 }

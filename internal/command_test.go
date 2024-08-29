@@ -66,9 +66,9 @@ func TestCommands(t *testing.T) {
 	}
 
 	res = CmdHistory(&data)
-	if !strings.Contains(res, `{"name":"Alice Smith","alias":"alice"}`) ||
-		!strings.Contains(res, `{"name":"Bob Jones","alias":"Bob"}`) ||
-		!strings.Contains(res, `{"name":"Alice Smith","note":"Alice note 1","timestamp":`) {
+	if !strings.Contains(res, "Alice Smith -> alice") ||
+		!strings.Contains(res, `Bob Jones -> Bob`) ||
+		!strings.Contains(res, "Alice note 1") {
 		t.Error("Incorrect output from history command")
 	}
 

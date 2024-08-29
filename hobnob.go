@@ -1,10 +1,8 @@
 package main
 
 import (
-	"fmt"
 	"github.com/alecthomas/kong"
 	"hobnob/internal"
-	"log"
 )
 
 var CLI struct {
@@ -61,11 +59,10 @@ func main() {
 	case "search <string>":
 		result = internal.CmdSearch(CLI.Search.SearchString, CLI.Search.name, &data)
 	default:
-		fmt.Println("Unknown command")
-		log.Fatal(ctx.Command())
+		ctx.Fatalf(ctx.Command())
 	}
 	if err != nil {
-		ctx.Kong.Fatalf("Error: %s", err)
+		ctx.Fatalf("%s", err)
 	}
 	println(result)
 }
