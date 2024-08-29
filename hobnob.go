@@ -25,6 +25,7 @@ var CLI struct {
 	Aliases  struct{} `cmd:"" help:"List all aliases"`
 	Contacts struct{} `cmd:"" help:"List all contacts"`
 	History  struct{} `cmd:"" help:"Show history"`
+	Stats    struct{} `cmd:"" help:"Show statistics"`
 }
 
 func main() {
@@ -56,6 +57,8 @@ func main() {
 		result = internal.CmdAbout(CLI.About.Name, &data)
 	case "search <string>":
 		result = internal.CmdSearch(CLI.Search.SearchString, CLI.Search.Name, &data)
+	case "stats":
+		result = internal.CmdStats(&data)
 	default:
 		ctx.Fatalf(ctx.Command())
 	}

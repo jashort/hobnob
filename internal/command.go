@@ -115,7 +115,18 @@ func CmdUndo(data *Data) string {
 func CmdHistory(data *Data) string {
 	output := strings.Builder{}
 	for _, action := range data.Actions {
-		output.WriteString(fmt.Sprintf("%s %s\n  %s\n", action.Timestamp, action.Type, action.Data))
+		if action.Type == ALIAS {
+			output.WriteString(fmt.Sprintf("%s\tAlias\t%s -> %s\n", action.Timestamp, action.Name, action.Data))
+		} else {
+			output.WriteString(fmt.Sprintf("%s\tNote\t%s\n  %s\n", action.Timestamp, action.Name, action.Data))
+		}
 	}
+	return output.String()
+}
+
+func CmdStats(data *Data) string {
+	output := strings.Builder{}
+	output.WriteString(fmt.Sprintf("  Aliases: %4d\n", len(data.Aliases)))
+	output.WriteString(fmt.Sprintf("    Notes: %4d\n", len(data.Notes)))
 	return output.String()
 }
