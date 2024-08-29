@@ -33,6 +33,9 @@ func CmdSearch(search []string, person string, data *Data) string {
 			}
 		}
 	}
+	if output.Len() == 0 {
+		output.WriteString("No matches found")
+	}
 	return output.String()
 }
 
