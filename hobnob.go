@@ -6,6 +6,8 @@ import (
 )
 
 var CLI struct {
+	DataFile string `help:"Data file" default:"~/.hobnob.json"`
+
 	Add struct {
 		Name string   `arg:"" name:"name" help:"Name or alias" type:"string"`
 		Note []string `arg:"" name:"note" help:"Note" type:"string"`
@@ -30,7 +32,7 @@ var CLI struct {
 
 func main() {
 	ctx := kong.Parse(&CLI)
-	data, err := internal.LoadAll("data.json")
+	data, err := internal.LoadAll(CLI.DataFile)
 	result := ""
 	if err != nil {
 		ctx.Kong.Fatalf("Error loading data: %s", err)
@@ -38,16 +40,16 @@ func main() {
 	switch ctx.Command() {
 	case "add <name> <note>":
 		result = internal.CmdAdd(CLI.Add.Name, CLI.Add.Note, &data)
-		err = internal.Save("data.json", data.Actions)
+		err = internal.Save(CLI.DataFile, data.Actions)
 	case "undo":
 		result = internal.CmdUndo(&data)
-		err = internal.Save("data.json", data.Actions)
+		err = internal.Save(CLI.DataFile, data.Actions)
 	case "history":
 		result = internal.CmdHistory(&data)
 	case "alias <name> <alias>":
 		result, err = internal.CmdAlias(CLI.Alias.Name, CLI.Alias.Alias, &data)
 		if err == nil {
-			err = internal.Save("data.json", data.Actions)
+			err = internal.Save(CLI.DataFile, data.Actions)
 		}
 	case "aliases":
 		result = internal.CmdAliases(&data)
