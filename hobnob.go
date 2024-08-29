@@ -15,7 +15,7 @@ var CLI struct {
 	} `cmd:"" help:"List all notes about person"`
 	Search struct {
 		SearchString []string `arg:"" name:"string" help:"String to search for (case insensitive)" type:"string"`
-		name         string   `short:"n" name:"name" help:"Only search person" type:"string" optional:"" placeholder:"Name|Alias"`
+		Name         string   `short:"n" name:"name" help:"Name or alias" type:"string" placeholder:"name"`
 	} `cmd:"" help:"Search notes"`
 	Undo  struct{} `cmd:"" help:"Undo last action"`
 	Alias struct {
@@ -35,8 +35,6 @@ func main() {
 		ctx.Kong.Fatalf("Error loading data: %s", err)
 	}
 	switch ctx.Command() {
-	case "search <search>":
-		result = internal.CmdSearch(CLI.Search.SearchString, CLI.Search.name, &data)
 	case "add <name> <note>":
 		result = internal.CmdAdd(CLI.Add.Name, CLI.Add.Note, &data)
 		err = internal.Save("data.json", data.Actions)
@@ -57,7 +55,7 @@ func main() {
 	case "about <name>":
 		result = internal.CmdAbout(CLI.About.Name, &data)
 	case "search <string>":
-		result = internal.CmdSearch(CLI.Search.SearchString, CLI.Search.name, &data)
+		result = internal.CmdSearch(CLI.Search.SearchString, CLI.Search.Name, &data)
 	default:
 		ctx.Fatalf(ctx.Command())
 	}
